@@ -1,5 +1,6 @@
 #pragma once
 #include <stddef.h>
+void launch_matmul(const float* A, const float* B, float* C, int M, int N, int K);
 
 void *gpu_malloc(size_t size);
 void  gpu_free(void *ptr);

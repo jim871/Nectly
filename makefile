@@ -1,8 +1,3 @@
-
----
-
-### Makefile
-```makefile
 CC = gcc
 NVCC = nvcc
 CFLAGS = -O2 -std=c11 -pthread -I./src
