@@ -1,0 +1,16 @@
+model Demo
+input 3
+layer 32
+layer 32
+layer 32
+layer 32
+layer 32
+layer 32
+layer 1
+train dataset.txt 500 0.01
+predict dataset.txt
+save model.bin
+load model.bin
+predict dataset.txt
+
+

@@ -9,7 +9,7 @@ OBJ = main.obj parser.obj model.obj util.obj gpu_helpers.obj kernels.obj
 all: nect.exe
 
 kernels.obj: kernels.cu
-	$(NVCC) -c kernels.cu -o kernels.obj
+	nvcc -c kernels.cu -o kernels.obj
 
 main.obj: src\main.c
 	$(CC) $(CFLAGS) /c src\main.c /Fo$@
@@ -30,4 +30,6 @@ nect.exe: $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS)
 
 clean:
-	del /Q *.obj *.exe
+	del /Q *.obj *.exe kernels.obj nect.exe 2>nul || exit 0
+
+
