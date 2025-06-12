@@ -1,91 +1,54 @@
-# NECT GPU Language
+# NECT: Neural C Training Language with CUDA Support
 
-NECT è un **linguaggio di programmazione standalone** sviluppato in **C puro** con supporto **CUDA** per definire, addestrare e inferire modelli di deep learning di qualsiasi dimensione.
+NECT è un linguaggio di programmazione standalone sviluppato in **C puro** con supporto **CUDA**, progettato per definire, addestrare e inferire modelli di deep learning senza dipendenze esterne.
 
----
+## 📅 Requisiti minimi
 
-## 📖 Panoramica
+* **Sistema operativo**: Windows 10/11 (x64)
+* **Visual Studio 2022** (con supporto C++)
+* **CUDA Toolkit** 12.9 o superiore
+* **GPU NVIDIA compatibile CUDA** (Compute Capability >= 5.0)
+* **Make per Windows** (incluso in MSYS2 o WSL consigliato)
 
-NECT offre una **DSL semplice e leggibile** (`.nect`) per:
+## ⚙️ Installazione passo-passo (Windows)
 
-* Definire la **struttura** di reti neurali feedforward dinamiche
-* Eseguire il **forward pass** su GPU tramite kernel CUDA
-* Eseguire il **backward pass** (SGD, MSE loss) su CPU
-* Salvare e caricare modelli in formato binario
-* Provare rapidamente esempi con **zero dipendenze Python**
+### 1. Installa gli strumenti necessari
 
-L’intero runtime è scritto in C, senza librerie esterne se non la **CUDA Runtime**.
+* **Visual Studio 2022** con componenti C++
+* **CUDA Toolkit** da [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads)
+* **MSYS2** per usare `make` e shell POSIX-like ([https://www.msys2.org/](https://www.msys2.org/))
 
----
+Dopo l'installazione, apri la shell **MSYS2 UCRT64**.
 
-## ⚙️ Caratteristiche principali
+### 2. Clona il repository
 
-* **Sintassi DSL** `.nect` intuitiva e priva di boilerplate.
-* **Modelli dinamici**: nessun limite fisso a numero di layer o neuroni.
-* **GPU-accelerazione**: forward pass svolto con matrici 16×16 ottimizzate.
-* **Training reale**: backward pass con **SGD** e **MSE loss**.
-* **Salvataggio/Caricamento** di modelli di qualsiasi complessità.
-* **Makefile unificato**: compila con `gcc` e `nvcc`.
-* **Esempi predefiniti** per partire subito.
+```bash
+cd ~/Desktop
+git clone https://github.com/TUO-USERNAME/nect.git
+cd nect
+```
 
----
+### 3. Compila il progetto
 
-## 📋 Requisiti di sistema
+```bash
+make
+```
 
-* **Sistema Linux** (o macchine con toolchain GCC e NVCC)
-* **GCC** (>= 9.0) con supporto C11
-* **NVCC** e **CUDA Toolkit** (>= 11.0)
-* Almeno **4 GB di RAM** per modelli di piccola scala
-* GPU NVIDIA con compute capability >= 5.0
+Se tutto va a buon fine, verrà generato un eseguibile chiamato `main.exe`.
 
----
+## 🔧 Esecuzione di esempio
 
-## 🚀 Installazione
+Assicurati di avere un file `dataset.txt` come questo:
 
-1. **Clona il repository**
+```
+0.1 0.2 0.3 : 1.0
+0.4 0.5 0.6 : 0.0
+0.7 0.8 0.9 : 1.0
+```
 
-   ```bash
-   git clone https://github.com/tuoutente/nect-gpu.git
-   cd nect-gpu
-   ```
+E uno script `example.nect`:
 
-2. **Compila tutto**
-
-   ```bash
-   make
-   ```
-
-   * Genererà l’eseguibile `nect` e l’oggetto CUDA `kernels.o`.
-
-3. **Verifica**
-
-   ```bash
-   ./nect example.nect
-   ```
-
-   Dovresti vedere log di inizializzazione, training e predizioni.
-
----
-
-## 📝 Sintassi DSL (.nect)
-
-Tutti i comandi sono su righe separate:
-
-| Comando                          | Descrizione                                                         |
-| -------------------------------- | ------------------------------------------------------------------- |
-| `model <nome>`                   | Inizializza un nuovo modello                                        |
-| `input <dimensione>`             | Imposta la dimensione del vettore di input                          |
-| `layer <unità>`                  | Aggiunge un layer denso con \<unità> neuroni                        |
-| `train <file> epochs <n> lr <f>` | Avvia training su `<file>` per `<n>` epoche con learning rate `<f>` |
-| `predict <file>`                 | Esegue inferenza su `<file>`                                        |
-| `save <file>`                    | Salva il modello corrente in `<file>`                               |
-| `load <file>`                    | Carica da `<file>` un modello precedentemente salvato               |
-
----
-
-### Esempio di script `example.nect`
-
-```nect
+```
 model Demo
 input 3
 layer 4
@@ -97,69 +60,60 @@ load model.bin
 predict dataset.txt
 ```
 
----
+Esegui:
 
-## 🏗️ Architettura interna
+```bash
+./main.exe example.nect
+```
 
-1. **Parser** (`src/parser.c`) legge e smista comandi.
-2. **Modello dinamico** (`src/model.c`): struttura con `malloc/realloc` per layer, pesi e bias.
-3. **Forward pass**:
+## 📖 Sintassi DSL `.nect`
 
-   * Input e pesi trasferiti su GPU
-   * Kernel CUDA (`kernels.cu`) esegue la moltiplicazione matriciale
-   * Risultati copiati indietro in memoria host
-4. **Backward pass** (CPU): calcolo del gradiente MSE e aggiornamento SGD.
-5. **IO**: salvataggio e caricamento binario di pesi e topologia.
+| Comando                          | Descrizione                        |
+| -------------------------------- | ---------------------------------- |
+| `model <nome>`                   | Crea un nuovo modello              |
+| `input <N>`                      | Specifica la dimensione dell'input |
+| `layer <neuroni>`                | Aggiunge un layer denso            |
+| `train <file> epochs <N> lr <f>` | Addestra il modello                |
+| `predict <file>`                 | Esegue inferenza                   |
+| `save <file>`                    | Salva il modello                   |
+| `load <file>`                    | Carica un modello salvato          |
 
----
+## 🌌 Caratteristiche principali
 
-## 📂 Struttura dei file
+* Reti neurali dinamiche (nessun limite a layer/neuroni)
+* Forward pass su GPU (CUDA)
+* Backpropagation su CPU (SGD + MSE loss)
+* Salvataggio/caricamento modelli
+* Nessuna dipendenza Python
+
+## 🏠 Struttura del progetto
 
 ```
-./
-├── LICENSE
-├── README.md
-├── Makefile
-├── kernels.cu
-├── example.nect
+nect/
 ├── dataset.txt
+├── example.nect
+├── main.exe
+├── makefile
+├── kernels.cu
 └── src/
     ├── main.c
-    ├── parser.h
-    ├── parser.c
-    ├── model.h
-    ├── model.c
-    ├── util.h
-    ├── util.c
-    ├── gpu_helpers.h
-    └── gpu_helpers.c
+    ├── parser.c/.h
+    ├── model.c/.h
+    ├── util.c/.h
+    ├── gpu_helpers.c/.h
 ```
 
----
+## 💪 Roadmap
 
-## 🔧 Estensioni e personalizzazioni
+*
 
-* **Attivazioni**: integra ReLU/GELU nei layer.
-* **Ottimizzatori**: aggiungi Adam, RMSProp, ecc.
-* **Loss**: supporta cross-entropy o altri criteri.
-* **Multi-GPU**: espandi il runtime per bilanciare carico.
-* **Tokenizer**: costruisci modelli di NLP integrando BPE.
+## 🙏 Licenza
+
+MIT License. Libero per uso personale e commerciale.
 
 ---
 
-## 👥 Contribuire
+Sviluppato con ❤️ in C e CUDA.
 
-1. Fork del progetto
-2. Crea un branch di funzionalità
-3. Effettua commit e push
-4. Apri una pull request descrivendo le modifiche
+> Per problemi o suggerimenti, apri una issue o una pull request su GitHub.
 
----
-
-## 📄 Licenza
-
-Distribuito sotto **MIT License**. Vedi il file `LICENSE` per i dettagli.
-
----
-
-*Buon divertimento con NECT GPU!*
