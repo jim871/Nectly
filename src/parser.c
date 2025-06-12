@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-int run_script(const char *file) {
+int run_script(const char *file, int nGPUs, cudaStream_t *streams) {
     FILE *f = fopen(file, "r");
     if (!f) { perror("Open script"); return 1; }
     char line[256], cmd[32];
@@ -27,11 +27,11 @@ int run_script(const char *file) {
             int e;
             float lr;
             sscanf(line, "train %127s epochs %d lr %f", p, &e, &lr);
-            train_model(p, e, lr);
+            train_model(p, e, lr, nGPUs, streams);
         } else if (strcmp(cmd, "predict") == 0) {
             char p[128];
             sscanf(line, "predict %127s", p);
-            predict_model(p);
+            predict_model(p, nGPUs, streams);
         } else if (strcmp(cmd, "save") == 0) {
             char p[128];
             sscanf(line, "save %127s", p);
@@ -44,4 +44,10 @@ int run_script(const char *file) {
     }
     fclose(f);
     return 0;
+}(const char *script_path, int nGPUs, cudaStream_t *streams);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // PARSER_H

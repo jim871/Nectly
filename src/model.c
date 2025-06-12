@@ -7,11 +7,10 @@
 
 static int *layer_sizes = NULL;
 static float **weights = NULL, **biases = NULL;
-static size_t n_layers = 0, capacity = 0, input_dim = 0;
+static size_t n_layers = 0, capacity = 0;
 
 int init_model(const char *name) {
     printf("Model '%s' initialized.\n", name);
-    // reset dynamic arrays
     for (size_t i = 0; i < n_layers; i++) {
         free(weights[i]);
         free(biases[i]);
@@ -27,7 +26,6 @@ int init_model(const char *name) {
 }
 
 int set_input_dim(int dim) {
-    input_dim = dim;
     layer_sizes[0] = dim;
     printf("Input dimension set to %d\n", dim);
     return 0;
@@ -52,7 +50,7 @@ int add_layer(int units) {
     return 0;
 }
 
-int train_model(const char *path, int epochs, float lr) {
+int train_model(const char *path, int epochs, float lr, int nGPUs, cudaStream_t *streams) {
     printf("Training on %s for %d epochs, lr=%f\n", path, epochs, lr);
     int inD = layer_sizes[0];
     float *input = malloc(sizeof(float) * inD);
@@ -64,40 +62,37 @@ int train_model(const char *path, int epochs, float lr) {
         while (fscanf(f, "%f", &input[0]) == 1) {
             for (int i = 1; i < inD; i++) fscanf(f, "%f", &input[i]);
             fscanf(f, "%f", &target);
-            // forward pass (GPU)
+            int gpu_id = count % nGPUs;
+            cudaSetDevice(gpu_id);
             float *act = input;
             float *next;
             for (size_t l = 0; l < n_layers; l++) {
                 int outD = layer_sizes[l+1];
                 next = malloc(sizeof(float) * outD);
-                // GPU forward
+                // GPU forward on specific stream
                 float *d_in  = gpu_malloc(sizeof(float) * layer_sizes[l]);
                 float *d_w   = gpu_malloc(sizeof(float) * layer_sizes[l] * outD);
                 float *d_out = gpu_malloc(sizeof(float) * outD);
-                gpu_memcpy_h2d(d_in,  act,                      sizeof(float) * layer_sizes[l]);
-                gpu_memcpy_h2d(d_w,   weights[l],              sizeof(float) * layer_sizes[l] * outD);
-                launch_matmul(d_in, d_w, d_out, 1, outD, layer_sizes[l]);
-                gpu_memcpy_d2h(next, d_out,                    sizeof(float) * outD);
+                gpu_memcpy_h2d_async(d_in,  act, sizeof(float) * layer_sizes[l], streams[gpu_id]);
+                gpu_memcpy_h2d_async(d_w,   weights[l], sizeof(float) * layer_sizes[l] * outD, streams[gpu_id]);
+                launch_matmul_async(d_in, d_w, d_out, 1, outD, layer_sizes[l], streams[gpu_id]);
+                gpu_memcpy_d2h_async(next, d_out, sizeof(float) * outD, streams[gpu_id]);
+                cudaStreamSynchronize(streams[gpu_id]);
                 gpu_free(d_in); gpu_free(d_w); gpu_free(d_out);
                 if (l > 0) free(act);
                 act = next;
             }
             float delta = act[0] - target;
-            // backward pass (CPU, SGD)
-            for (int l = n_layers-1; l >= 0; l--) {
+            // Backward pass on CPU (can be parallelized similarly)
+            for (int l = (int)n_layers - 1; l >= 0; l--) {
                 int inD2 = layer_sizes[l], outD2 = layer_sizes[l+1];
-                float *prev = (l == 0 ? input : NULL);
-                if (l > 0) {
-                    prev = malloc(sizeof(float) * layer_sizes[l]);
-                    memcpy(prev, input, sizeof(float) * layer_sizes[0]); // simple
-                }
+                float *prev = (l == 0 ? input : act); // simplified
                 for (int j = 0; j < outD2; j++) {
                     biases[l][j] -= lr * delta;
                     for (int k = 0; k < inD2; k++) {
-                        weights[l][j*inD2 + k] -= lr * delta * (l == 0 ? input[k] : prev[k]);
+                        weights[l][j*inD2 + k] -= lr * delta * prev[k];
                     }
                 }
-                if (l > 0) free(prev);
             }
             free(act);
             count++;
@@ -109,33 +104,37 @@ int train_model(const char *path, int epochs, float lr) {
     return 0;
 }
 
-int predict_model(const char *path) {
+int predict_model(const char *path, int nGPUs, cudaStream_t *streams) {
     printf("Predicting on %s\n", path);
     int inD = layer_sizes[0];
     float *input = malloc(sizeof(float) * inD);
     FILE *f = fopen(path, "r");
     if (!f) { perror("Open dataset"); return 1; }
+    int count = 0;
     while (fscanf(f, "%f", &input[0]) == 1) {
         for (int i = 1; i < inD; i++) fscanf(f, "%f", &input[i]);
+        int gpu_id = count % nGPUs;
+        cudaSetDevice(gpu_id);
         float *act = input;
         float *next;
         for (size_t l = 0; l < n_layers; l++) {
             int outD = layer_sizes[l+1];
             next = malloc(sizeof(float) * outD);
-            // GPU forward
             float *d_in  = gpu_malloc(sizeof(float) * layer_sizes[l]);
             float *d_w   = gpu_malloc(sizeof(float) * layer_sizes[l] * outD);
             float *d_out = gpu_malloc(sizeof(float) * outD);
-            gpu_memcpy_h2d(d_in,  act,                      sizeof(float) * layer_sizes[l]);
-            gpu_memcpy_h2d(d_w,   weights[l],              sizeof(float) * layer_sizes[l] * outD);
-            launch_matmul(d_in, d_w, d_out, 1, outD, layer_sizes[l]);
-            gpu_memcpy_d2h(next, d_out,                    sizeof(float) * outD);
+            gpu_memcpy_h2d_async(d_in,  act, sizeof(float) * layer_sizes[l], streams[gpu_id]);
+            gpu_memcpy_h2d_async(d_w,   weights[l], sizeof(float) * layer_sizes[l] * outD, streams[gpu_id]);
+            launch_matmul_async(d_in, d_w, d_out, 1, outD, layer_sizes[l], streams[gpu_id]);
+            gpu_memcpy_d2h_async(next, d_out, sizeof(float) * outD, streams[gpu_id]);
+            cudaStreamSynchronize(streams[gpu_id]);
             gpu_free(d_in); gpu_free(d_w); gpu_free(d_out);
             if (l > 0) free(act);
             act = next;
         }
         printf("Prediction: %f\n", act[0]);
         free(act);
+        count++;
     }
     fclose(f);
     free(input);
