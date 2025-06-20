@@ -1,57 +1,56 @@
+# 🚀 NECTLY – Neural C Training Language with CUDA Support
 
-=======
-# NECTLY: Neural C Training Language with CUDA Support
+**NECTLY** è un linguaggio di programmazione standalone scritto in **C puro** con supporto a **CUDA**, progettato per **definire, addestrare e inferire modelli di deep learning** direttamente, senza dipendenze esterne.
 
-NECTLY è un linguaggio di programmazione standalone sviluppato in **C puro** con supporto **CUDA**, progettato per definire, addestrare e inferire modelli di deep learning senza dipendenze esterne.
-Nota legale: il comando Nect é usato solo per abbreviazione e non ha nulla a che vedere con il software Nect di riconoscimento di impronta digitale della azienda con sede in Germania
->>>>>>> 5bdb35e333d76a17f55c10247b122b7b424df7c1
-## 📅 Requisiti minimi
+> **Nota legale**: Il nome "NECT" usato in abbreviazione non è collegato in alcun modo al software di riconoscimento biometrico NECT GmbH, con sede in Germania.
 
-* **Sistema operativo**: Windows 10/11 (x64)
-* **Visual Studio 2022** (con supporto C++)
-* **CUDA Toolkit** 12.9 o superiore
-* **GPU NVIDIA compatibile CUDA** (Compute Capability >= 5.0)
-* **Make per Windows** (incluso in MSYS2 o WSL consigliato)
+## 📦 Requisiti minimi
 
-## ⚙️ Installazione passo-passo (Windows)
+- **Sistema operativo**: Windows 10/11 (x64)
+- **Visual Studio 2022** (con C++ e toolchain MSVC)
+- **CUDA Toolkit** 12.0 o superiore
+- **GPU NVIDIA** compatibile (Compute Capability ≥ 5.0)
+- (Opzionale) **MSYS2** o **WSL** per `make`
+
+## ⚙️ Installazione (Windows)
 
 ### 1. Installa gli strumenti necessari
 
-* **Visual Studio 2022** con componenti C++
-* **CUDA Toolkit** da [https://developer.nvidia.com/cuda-downloads](https://developer.nvidia.com/cuda-downloads)
-* **MSYS2** per usare `make` e shell POSIX-like ([https://www.msys2.org/](https://www.msys2.org/))
-
-Dopo l'installazione, apri la shell **MSYS2 UCRT64**.
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) con componenti per C++
+- [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
+- *(Facoltativo)* [MSYS2](https://www.msys2.org/) per `make`
 
 ### 2. Clona il repository
 
 ```bash
-cd ~/Desktop
-git clone https://github.com/TUO-USERNAME/nect.git
-cd nect
-```
+git clone https://github.com/TUO-USERNAME/nectly.git
+cd nectly
+3. Compilazione manuale (senza make)
+Apri "Developer Command Prompt for VS 2022", poi:
 
-### 3. Compila il progetto
+bat
+Copia
+Modifica
+set CUDA_PATH=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9
+set PATH=%CUDA_PATH%\bin;%PATH%
+set LIB=%CUDA_PATH%\lib\x64;%LIB%
+set INCLUDE=%CUDA_PATH%\include;%INCLUDE%
 
-```bash
-make
-```
-
-Se tutto va a buon fine, verrà generato un eseguibile chiamato `main.exe`.
-
-## 🔧 Esecuzione di esempio
-
-Assicurati di avere un file `dataset.txt` come questo:
-
-```
+cl /c /MD /O2 /I src src\*.c main.c
+nvcc -c -O2 -ccbin "cl" -Xcompiler /MD -I src src\kernels.cu -o kernels.obj
+cl *.obj /link /OUT:nect.exe /LIBPATH:"%CUDA_PATH%\lib\x64" cudart.lib
+🧪 Esempio di utilizzo
+File dataset.txt
+yaml
+Copia
+Modifica
 0.1 0.2 0.3 : 1.0
 0.4 0.5 0.6 : 0.0
 0.7 0.8 0.9 : 1.0
-```
-
-E uno script `example.nect`:
-
-```
+File example.nectly
+python
+Copia
+Modifica
 model Demo
 input 3
 layer 4
@@ -61,65 +60,84 @@ predict dataset.txt
 save model.bin
 load model.bin
 predict dataset.txt
-```
-
 Esegui:
+bash
+Copia
+Modifica
+nect.exe example.nectly
+📖 Sintassi .nectly
+Comando	Descrizione
+model <nome>	Crea un modello
+input <N>	Imposta dimensione input
+layer <neuroni>	Aggiunge un layer denso
+train <file> epochs <N> lr <f>	Addestra il modello con SGD
+predict <file>	Esegue inferenza
+save <file>	Salva il modello su disco
+load <file>	Carica un modello da disco
 
-```bash
-./main.exe example.nect
-```
+💡 Caratteristiche principali
+Linguaggio DSL semplificato (.nectly)
 
-## 📖 Sintassi DSL `.nect`
+Definizione e training di reti neurali dense (MLP)
 
-| Comando                          | Descrizione                        |
-| -------------------------------- | ---------------------------------- |
-| `model <nome>`                   | Crea un nuovo modello              |
-| `input <N>`                      | Specifica la dimensione dell'input |
-| `layer <neuroni>`                | Aggiunge un layer denso            |
-| `train <file> epochs <N> lr <f>` | Addestra il modello                |
-| `predict <file>`                 | Esegue inferenza                   |
-| `save <file>`                    | Salva il modello                   |
-| `load <file>`                    | Carica un modello salvato          |
+Supporto CUDA per operazioni su GPU (matmul, batching)
 
-## 🌌 Caratteristiche principali
+Addestramento su CPU (SGD, MSE)
 
-* Reti neurali dinamiche (nessun limite a layer/neuroni)
-* Forward pass su GPU (CUDA)
-* Backpropagation su CPU (SGD + MSE loss)
-* Salvataggio/caricamento modelli
-* Nessuna dipendenza Python
+Salvataggio/caricamento modelli
 
-## 🏠 Struttura del progetto
+Nessuna dipendenza Python o framework esterni
 
-```
-nect/
+📁 Struttura del progetto
+bash
+Copia
+Modifica
+nectly/
 ├── dataset.txt
-├── example.nect
-├── main.exe
+├── example.nectly
+├── nect.exe
 ├── makefile
 ├── kernels.cu
 └── src/
     ├── main.c
     ├── parser.c/.h
+    ├── tokenizer.c/.h
     ├── model.c/.h
+    ├── optimizer.c/.h
+    ├── loss.c/.h
     ├── util.c/.h
+    ├── io_helpers.c/.h
     ├── gpu_helpers.c/.h
-```
+🔭 Roadmap
+ Implementazione predict_model completa
 
-## 💪 Roadmap
+ Supporto per nuovi ottimizzatori (Adam, RMSprop)
 
-*
+ Salvataggio binario reale e formato compatibile
 
-## 🙏 Licenza
+ Supporto a reti ricorrenti (RNN/LSTM)
 
-MIT License. Libero per uso personale e commerciale.
+ Estensioni modulari tramite plugin C dinamici
 
----
+📜 Licenza
+Rilasciato sotto licenza MIT. Libero per uso personale, accademico e commerciale.
 
-Sviluppato con ❤️ in C e CUDA.
+Sviluppato con ❤️ da [TUO NOME] usando C + CUDA.
 
-> Per problemi o suggerimenti, apri una issue o una pull request su GitHub.
-<<<<<<< HEAD
+Per feedback, apri una issue o crea una pull request su GitHub.
 
-=======
->>>>>>> 5bdb35e333d76a17f55c10247b122b7b424df7c1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

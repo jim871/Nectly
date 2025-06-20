@@ -1,4 +1,4 @@
-# Makefile per NECT su Windows (NVCC + GNU make)
+# Makefile per NECTLY su Windows (NVCC + GNU make)
 
 # Usa nvcc per compilare sia .c che .cu
 CC      := nvcc
@@ -23,7 +23,7 @@ OBJS := $(SRCS:.c=.o)
 OBJS := $(OBJS:.cu=.o)
 
 # Nome dell’eseguibile
-TARGET := nect.exe
+TARGET := nectly.exe
 
 .PHONY: all clean
 

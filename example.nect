@@ -1,6 +1,0 @@
-model Demo
-input 3
-layer 4
-layer 1
-train dataset_clean.csv 100 0.01
-save model.bin

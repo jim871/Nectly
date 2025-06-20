@@ -8,7 +8,7 @@ cudaStream_t *streams = NULL;
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        printf("Usage: %s <script.nect> [#GPUs]\n", argv[0]);
+        printf("Usage: %s <script.nectly> [#GPUs]\n", argv[0]);
         return 1;
     }
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
         cudaStreamCreate(&streams[i]);
     }
 
-    // esegui lo script NECT
+    // esegui lo script NECTLY
     int ret = run_script(argv[1], nGPUs, streams);
 
     // pulizia

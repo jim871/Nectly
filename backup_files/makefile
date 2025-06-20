@@ -11,7 +11,7 @@ LDFLAGS = -lcudart
 SRC = src/main.c src/parser.c src/model.c src/util.c src/gpu_helpers.c
 OBJ = $(SRC:.c=.o) kernels.o
 
-all: nect
+all: nectly
 
 kernels.o: kernels.cu
 	$(NVCC) -c kernels.cu -o kernels.o
@@ -19,8 +19,8 @@ kernels.o: kernels.cu
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-nect: $(OBJ)
+nectly: $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f src/*.o kernels.o nect
+	rm -f src/*.o kernels.o nectly
