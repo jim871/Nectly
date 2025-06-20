@@ -2,9 +2,7 @@
 
 **NECTLY** è un linguaggio di programmazione standalone scritto in **C puro** con supporto a **CUDA**, progettato per **definire, addestrare e inferire modelli di deep learning** direttamente, senza dipendenze esterne.
 
-> ⚠️ Nota: Il nome "NECT" è qui usato come acronimo tecnico e non ha alcuna relazione con il software biometrico "Nect" di aziende terze.
 
----
 
 ## 📦 Requisiti minimi
 
