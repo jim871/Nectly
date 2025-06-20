@@ -45,7 +45,7 @@ set INCLUDE=%CUDA_PATH%\include;%INCLUDE%
 
 cl /c /MD /O2 /I src src\*.c main.c
 nvcc -c -O2 -ccbin "cl" -Xcompiler /MD -I src src\kernels.cu -o kernels.obj
-cl *.obj /link /OUT:nect.exe /LIBPATH:"%CUDA_PATH%\lib\x64" cudart.lib
+cl *.obj /link /OUT:nectly.exe /LIBPATH:"%CUDA_PATH%\lib\x64" cudart.lib
 ```
 
 ---
@@ -77,7 +77,7 @@ predict dataset.txt
 ### Esecuzione:
 
 ```bash
-nect.exe example.nectly
+nectly.exe example.nectly
 ```
 
 ---
@@ -113,7 +113,7 @@ nect.exe example.nectly
 nectly/
 ├── dataset.txt
 ├── example.nectly
-├── nect.exe
+├── nectly.exe
 ├── makefile
 ├── kernels.cu
 └── src/
