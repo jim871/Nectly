@@ -2,7 +2,9 @@
 
 **NECTLY** è un linguaggio di programmazione standalone scritto in **C puro** con supporto a **CUDA**, progettato per **definire, addestrare e inferire modelli di deep learning** direttamente, senza dipendenze esterne.
 
+> ⚠️ Nota: Il nome "NECT" è qui usato come acronimo tecnico e non ha alcuna relazione con il software biometrico "Nect" di aziende terze.
 
+---
 
 ## 📦 Requisiti minimi
 
@@ -10,7 +12,9 @@
 - **Visual Studio 2022** (con C++ e toolchain MSVC)
 - **CUDA Toolkit** 12.0 o superiore
 - **GPU NVIDIA** compatibile (Compute Capability ≥ 5.0)
-- (Opzionale) **MSYS2** o **WSL** per `make`
+- (Facoltativo) **MSYS2** o **WSL** per usare `make`
+
+---
 
 ## ⚙️ Installazione (Windows)
 
@@ -18,19 +22,24 @@
 
 - [Visual Studio 2022](https://visualstudio.microsoft.com/) con componenti per C++
 - [CUDA Toolkit](https://developer.nvidia.com/cuda-downloads)
-- *(Facoltativo)* [MSYS2](https://www.msys2.org/) per `make`
+- *(Facoltativo)* [MSYS2](https://www.msys2.org/) per compilare con `make`
+
+---
 
 ### 2. Clona il repository
 
 ```bash
-git clone https://github.com/TUO-USERNAME/nectly.git
-cd nectly
-3. Compilazione manuale (senza make)
-Apri "Developer Command Prompt for VS 2022", poi:
+git clone https://github.com/jim871/Nectly.git
+cd Nectly
+```
 
-bat
-Copia
-Modifica
+---
+
+### 3. Compilazione manuale (senza make)
+
+Apri **Developer Command Prompt for VS 2022** (x64), poi:
+
+```cmd
 set CUDA_PATH=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9
 set PATH=%CUDA_PATH%\bin;%PATH%
 set LIB=%CUDA_PATH%\lib\x64;%LIB%
@@ -39,18 +48,23 @@ set INCLUDE=%CUDA_PATH%\include;%INCLUDE%
 cl /c /MD /O2 /I src src\*.c main.c
 nvcc -c -O2 -ccbin "cl" -Xcompiler /MD -I src src\kernels.cu -o kernels.obj
 cl *.obj /link /OUT:nect.exe /LIBPATH:"%CUDA_PATH%\lib\x64" cudart.lib
-🧪 Esempio di utilizzo
-File dataset.txt
-yaml
-Copia
-Modifica
+```
+
+---
+
+## 🧪 Esempio di utilizzo
+
+### File `dataset.txt`
+
+```
 0.1 0.2 0.3 : 1.0
 0.4 0.5 0.6 : 0.0
 0.7 0.8 0.9 : 1.0
-File example.nectly
-python
-Copia
-Modifica
+```
+
+### File `example.nectly`
+
+```
 model Demo
 input 3
 layer 4
@@ -60,38 +74,44 @@ predict dataset.txt
 save model.bin
 load model.bin
 predict dataset.txt
-Esegui:
-bash
-Copia
-Modifica
+```
+
+### Esecuzione:
+
+```bash
 nect.exe example.nectly
-📖 Sintassi .nectly
-Comando	Descrizione
-model <nome>	Crea un modello
-input <N>	Imposta dimensione input
-layer <neuroni>	Aggiunge un layer denso
-train <file> epochs <N> lr <f>	Addestra il modello con SGD
-predict <file>	Esegue inferenza
-save <file>	Salva il modello su disco
-load <file>	Carica un modello da disco
+```
 
-💡 Caratteristiche principali
-Linguaggio DSL semplificato (.nectly)
+---
 
-Definizione e training di reti neurali dense (MLP)
+## 📖 Sintassi `.nectly`
 
-Supporto CUDA per operazioni su GPU (matmul, batching)
+| Comando                                | Descrizione                            |
+|----------------------------------------|----------------------------------------|
+| `model <nome>`                         | Crea un modello                        |
+| `input <N>`                            | Imposta la dimensione dell’input       |
+| `layer <neuroni>`                      | Aggiunge un layer fully-connected      |
+| `train <file> epochs <N> lr <f>`       | Addestra il modello con SGD            |
+| `predict <file>`                       | Esegue inferenza su un file            |
+| `save <file>`                          | Salva il modello                       |
+| `load <file>`                          | Carica un modello salvato              |
 
-Addestramento su CPU (SGD, MSE)
+---
 
-Salvataggio/caricamento modelli
+## 💡 Caratteristiche principali
 
-Nessuna dipendenza Python o framework esterni
+- Linguaggio DSL `.nectly` semplice e leggibile
+- Modelli di rete neurale MLP (densamente connessi)
+- Operazioni su GPU (CUDA) ottimizzate (matmul, batching)
+- Addestramento su CPU con **SGD** e **MSE**
+- Modello di esecuzione lineare e leggibile
+- Nessuna dipendenza da Python o librerie esterne
 
-📁 Struttura del progetto
-bash
-Copia
-Modifica
+---
+
+## 📁 Struttura del progetto
+
+```
 nectly/
 ├── dataset.txt
 ├── example.nectly
@@ -108,35 +128,31 @@ nectly/
     ├── util.c/.h
     ├── io_helpers.c/.h
     ├── gpu_helpers.c/.h
-🔭 Roadmap
- Implementazione predict_model completa
+```
 
- Supporto per nuovi ottimizzatori (Adam, RMSprop)
+---
 
- Salvataggio binario reale e formato compatibile
+## 🔭 Roadmap
 
- Supporto a reti ricorrenti (RNN/LSTM)
+- ✅ Parsing e compilazione DSL `.nectly`
+- ✅ Addestramento su CPU (SGD)
+- ✅ Matmul CUDA con batching
+- ⏳ Integrazione `predict_model` completo
+- ⏳ Ottimizzatori avanzati: Adam, RMSprop
+- ⏳ Supporto a RNN, LSTM
+- ⏳ Plugin dinamici C per estensioni
 
- Estensioni modulari tramite plugin C dinamici
+---
 
-📜 Licenza
-Rilasciato sotto licenza MIT. Libero per uso personale, accademico e commerciale.
+## 📜 Licenza
 
-Sviluppato con ❤️ da [TUO NOME] usando C + CUDA.
+Rilasciato sotto licenza **MIT**. Libero per uso personale, accademico e commerciale.
 
-Per feedback, apri una issue o crea una pull request su GitHub.
+---
 
+Sviluppato con ❤️ da [**jim871**](https://github.com/jim871) usando **C** e **CUDA**.
 
-
-
-
-
-
-
-
-
-
-
+Per feedback, apri una issue o una pull request nel repository GitHub.
 
 
 
