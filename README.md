@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 # NECT: Neural C Training Language with CUDA Support
 
 NECT è un linguaggio di programmazione standalone sviluppato in **C puro** con supporto **CUDA**, progettato per definire, addestrare e inferire modelli di deep learning senza dipendenze esterne.
 
+=======
+# NECTLY: Neural C Training Language with CUDA Support
+
+NECTLY è un linguaggio di programmazione standalone sviluppato in **C puro** con supporto **CUDA**, progettato per definire, addestrare e inferire modelli di deep learning senza dipendenze esterne.
+Nota legale: il comando Nect é usato solo per abbreviazione e non ha nulla a che vedere con il software Nect di riconoscimento di impronta digitale della azienda con sede in Germania
+>>>>>>> 5bdb35e333d76a17f55c10247b122b7b424df7c1
 ## 📅 Requisiti minimi
 
 * **Sistema operativo**: Windows 10/11 (x64)
@@ -116,4 +123,7 @@ MIT License. Libero per uso personale e commerciale.
 Sviluppato con ❤️ in C e CUDA.
 
 > Per problemi o suggerimenti, apri una issue o una pull request su GitHub.
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5bdb35e333d76a17f55c10247b122b7b424df7c1
