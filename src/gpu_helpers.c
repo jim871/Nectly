@@ -1,28 +1,49 @@
+#include <stdio.h>          // per stderr
 #include "gpu_helpers.h"
 #include <cuda_runtime.h>
-#include <stdio.h>
 
-void *gpu_malloc(size_t size) {
-    void *ptr;
-    cudaMalloc(&ptr, size);
+void* gpu_malloc(size_t size) {
+    void *ptr = NULL;
+    cudaError_t err = cudaMalloc(&ptr, size);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc failed: %s\n", cudaGetErrorString(err));
+        return NULL;
+    }
     return ptr;
 }
 
 void gpu_free(void *ptr) {
-    cudaFree(ptr);
+    if (ptr) cudaFree(ptr);
 }
 
-void gpu_memcpy_h2d(void *d, const void *h, size_t size) {
-    cudaMemcpy(d, h, size, cudaMemcpyHostToDevice);
+void gpu_memcpy_h2d(void *dst, const void *src, size_t size) {
+    cudaMemcpy(dst, src, size, cudaMemcpyHostToDevice);
 }
 
-void gpu_memcpy_d2h(void *h, const void *d, size_t size) {
-    cudaMemcpy(h, d, size, cudaMemcpyDeviceToHost);
+void gpu_memcpy_d2h(void *dst, const void *src, size_t size) {
+    cudaMemcpy(dst, src, size, cudaMemcpyDeviceToHost);
 }
 
-void set_device(int id) {
-    int count;
-    cudaGetDeviceCount(&count);
-    if (id >= 0 && id < count) cudaSetDevice(id);
-    else printf("GPU %d not available\n", id);
+void launch_matmul(
+    const float *d_A,
+    const float *d_B,
+    float       *d_C,
+    int           M,
+    int           N,
+    int           K
+) {
+    // chiama il kernel custom in kernels.cu
+    matmul_kernel(d_A, d_B, d_C, M, N, K);
+}
+
+void launch_matmul_batched(
+    const float *d_A,
+    const float *d_B,
+    float       *d_C,
+    int           batch,
+    int           M,
+    int           N,
+    int           K
+) {
+    matmul_batched_kernel(d_A, d_B, d_C, batch, M, N, K);
 }

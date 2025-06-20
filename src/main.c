@@ -3,32 +3,36 @@
 #include <stdlib.h>
 #include <cuda_runtime.h>
 
-// Number of GPUs and streams shared with training code
 int nGPUs = 0;
 cudaStream_t *streams = NULL;
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        printf("Usage: %s <script.nect>\n", argv[0]);
+        printf("Usage: %s <script.nect> [#GPUs]\n", argv[0]);
         return 1;
     }
 
-    // Detect available CUDA devices
-    cudaError_t err = cudaGetDeviceCount(&nGPUs);
+    // numero di GPU da CLI (opzionale)
+    if (argc >= 3) {
+        nGPUs = atoi(argv[2]);
+    }
+
+    // rileva tutte le GPU disponibili
+    int totalGPUs;
+    cudaError_t err = cudaGetDeviceCount(&totalGPUs);
     if (err != cudaSuccess) {
         fprintf(stderr, "ERROR: cudaGetDeviceCount failed: %s\n", cudaGetErrorString(err));
         return 1;
     }
-    if (nGPUs < 1) {
-        fprintf(stderr, "No CUDA devices found. Exiting.\n");
-        return 1;
+    if (nGPUs <= 0 || nGPUs > totalGPUs) {
+        nGPUs = totalGPUs;
     }
-    printf("Detected %d CUDA device(s)\n", nGPUs);
+    printf("Detected %d CUDA device(s); using %d\n", totalGPUs, nGPUs);
 
-    // Allocate and create streams for each GPU
-    streams = (cudaStream_t*)malloc(sizeof(cudaStream_t) * nGPUs);
+    // crea uno stream per cada GPU
+    streams = malloc(sizeof(cudaStream_t) * nGPUs);
     if (!streams) {
-        fprintf(stderr, "Failed to allocate CUDA streams array.\n");
+        fprintf(stderr, "Failed to alloc streams array\n");
         return 1;
     }
     for (int i = 0; i < nGPUs; ++i) {
@@ -36,10 +40,10 @@ int main(int argc, char **argv) {
         cudaStreamCreate(&streams[i]);
     }
 
-    // Execute NECT script (training + inference)
+    // esegui lo script NECT
     int ret = run_script(argv[1], nGPUs, streams);
 
-    // Cleanup: destroy streams
+    // pulizia
     for (int i = 0; i < nGPUs; ++i) {
         cudaSetDevice(i);
         cudaStreamDestroy(streams[i]);
@@ -48,3 +52,6 @@ int main(int argc, char **argv) {
 
     return ret;
 }
+
+
+

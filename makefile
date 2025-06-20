@@ -1,35 +1,45 @@
-CC = cl
-NVCC = nvcc
-CFLAGS = /O2 /I"src" /I"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9/include"
-LDFLAGS = /link /LIBPATH:"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9/lib/x64" cudart.lib
+# Makefile per NECT su Windows (NVCC + GNU make)
 
-SRC = src\main.c src\parser.c src\model.c src\util.c src\gpu_helpers.c
-OBJ = main.obj parser.obj model.obj util.obj gpu_helpers.obj kernels.obj
+# Usa nvcc per compilare sia .c che .cu
+CC      := nvcc
+CFLAGS  := -O2 -std=c99 -I.
+LDFLAGS := -L"C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9/lib/x64" -lcudart
 
-all: nect.exe
+# Tutti i sorgenti
+SRCS := \
+    main.c \
+    parser.c \
+    model.c \
+    tokenizer.c \
+    mha.c \
+    loss.c \
+    optimizer.c \
+    gpu_helpers.c \
+    util.c \
+    kernels.cu
 
-kernels.obj: kernels.cu
-	nvcc -c kernels.cu -o kernels.obj
+# Oggetti generati
+OBJS := $(SRCS:.c=.o)
+OBJS := $(OBJS:.cu=.o)
 
-main.obj: src\main.c
-	$(CC) $(CFLAGS) /c src\main.c /Fo$@
+# Nome dell’eseguibile
+TARGET := nect.exe
 
-parser.obj: src\parser.c
-	$(CC) $(CFLAGS) /c src\parser.c /Fo$@
+.PHONY: all clean
 
-model.obj: src\model.c
-	$(CC) $(CFLAGS) /c src\model.c /Fo$@
+all: $(TARGET)
 
-util.obj: src\util.c
-	$(CC) $(CFLAGS) /c src\util.c /Fo$@
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
-gpu_helpers.obj: src\gpu_helpers.c
-	$(CC) $(CFLAGS) /c src\gpu_helpers.c /Fo$@
+# Regola per .c -> .o
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-nect.exe: $(OBJ)
-	$(CC) $(OBJ) $(LDFLAGS)
+# Regola per .cu -> .o
+%.o: %.cu
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	del /Q *.obj *.exe kernels.obj nect.exe 2>nul || exit 0
-
+	del /Q $(OBJS) $(TARGET) 2>nul || rm -f $(OBJS) $(TARGET)
 

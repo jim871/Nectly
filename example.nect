@@ -2,8 +2,5 @@ model Demo
 input 3
 layer 4
 layer 1
-train dataset.txt epochs 100 lr 0.01
-predict dataset.txt
+train dataset_clean.csv 100 0.01
 save model.bin
-load model.bin
-predict dataset.txt

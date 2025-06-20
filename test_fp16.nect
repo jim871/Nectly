@@ -1,0 +1,13 @@
+tokenizer vocab.txt
+model Demo
+
+
+input 3
+layer 32
+layer 32
+layer 1
+precisione on
+train dataset.txt 50 0.01
+predict dataset.txt
+
+
